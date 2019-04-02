@@ -13,6 +13,5 @@
         public bool DeleteFromStorageAfterDownload { get; set; }
 
         public string LocalDirectory { get; set; }
-        public string FileName { get; set; }
     }
 }

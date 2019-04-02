@@ -17,7 +17,8 @@ namespace AzureDBExport_ConsoleApp
     {
         static void Main(string[] args)
         {
-           
+            AzureDatabaseExportService service = new AzureDatabaseExportService();
+            service.ExportAzureDatabase();
         }
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.Azure.Management.Storage.Fluent;
 using Microsoft.Extensions.Configuration;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace AzureDBExport_ConsoleApp
@@ -16,12 +17,27 @@ namespace AzureDBExport_ConsoleApp
         IAzure azure;
         ISqlServer sqlServer;
         public static IConfigurationRoot configuration;
-        IStorageAccount storageAccount;
-        CloudBlobContainer cloudBlobContainer;
-        Backup backup;
-        public AzureDatabaseExportService(string subscriptionId,
-            string clientId, string clientSecret, string tenantId)
+        //IStorageAccount storageAccount;
+        //CloudBlobContainer cloudBlobContainer;
+        List<Backup> backups = new List<Backup>();
+        Backup backup = new Backup();
+        public AzureDatabaseExportService()
         {
+            string subscriptionId = string.Empty;
+            string clientId = string.Empty;
+            string clientSecret = string.Empty;
+            string tenantId = string.Empty;
+
+            configuration = new ConfigurationBuilder()
+                                .SetBasePath(Directory.GetCurrentDirectory())
+                                .AddJsonFile("appsettings.json", false, true)
+                                .Build();
+
+            subscriptionId = configuration.GetSection("SubscriptionId").Value;
+            clientId = configuration.GetSection("ClientId").Value;
+            clientSecret = configuration.GetSection("ClientSecret").Value;
+            tenantId = configuration.GetSection("TenantId").Value;
+
             var credentials = SdkContext.AzureCredentialsFactory.FromServicePrincipal(
                                            clientId, clientSecret, tenantId,
                                            environment: AzureEnvironment.AzureGlobalCloud);
@@ -29,10 +45,6 @@ namespace AzureDBExport_ConsoleApp
                         .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
                         .Authenticate(credentials).WithSubscription(subscriptionId);
 
-            configuration = new ConfigurationBuilder()
-                                .SetBasePath(Directory.GetCurrentDirectory())
-                                .AddJsonFile("config.json", false, true)
-                                .Build();
             configuration.GetSection("Backup").Bind(backup);
         }
 
@@ -89,7 +101,7 @@ namespace AzureDBExport_ConsoleApp
                 ISqlDatabaseImportExportResponse exportedSqlDatabase = sqlDatabase.ExportTo(
                                             storageAccount,
                                             backup.Destination.StorageContainerName,
-                                            backup.Destination.FileName)
+                                            DateTime.Now.ToString("yyyy’-‘MM’-‘dd’T’HH’:’mm’:’ss"))
                                         .WithSqlAdministratorLoginAndPassword(
                                             backup.Source.SqlAdminUsername,
                                             backup.Source.SqlAdminPassword)
