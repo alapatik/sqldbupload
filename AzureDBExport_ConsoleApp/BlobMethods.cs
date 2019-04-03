@@ -46,7 +46,8 @@ namespace AzureDBExport_ConsoleApp
             CloudBlockBlob blobSource = GetBlobSource(blobName);
             if (blobSource.Exists())
             {
-                string localPath = Path.Combine(localFilePath, blobSource.Name.Replace(@"/", @"\"));
+                //string localPath = Path.Combine(localFilePath, blobSource.Name.Replace(@"/", @"\"));
+                string localPath = localFilePath;
                 string dirPath = Path.GetDirectoryName(localPath);
                 if (!Directory.Exists(localPath))
                 {

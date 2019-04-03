@@ -18,7 +18,11 @@ namespace AzureDBExport_ConsoleApp
         static void Main(string[] args)
         {
             AzureDatabaseExportService service = new AzureDatabaseExportService();
-            service.ExportAzureDatabase();
+            string fileName = service.ExportAzureDatabase();
+            BlobMethods blob = new BlobMethods("mysqlbacpacstorage", "gcK8hERRkxl9M988RfJTND2ZQAp+nF430zGzUVwTJunq/yHZrCAISGMVrOiIrDO5gizjCDWTOLpTreDb5yhOnQ==", "practice");
+            //blob.DeleteBlob(fileName);
+            blob.DownloadFileFromBlob(fileName, "~");
+
         }
     }
 }

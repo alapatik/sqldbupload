@@ -92,6 +92,7 @@ namespace AzureDBExport_ConsoleApp
         /// <returns>Returns status of export</returns>
         public string ExportAzureDatabase()
         {
+            string fileName = DateTime.Now.ToString("yyyy’-‘MM’-‘dd’T’HH’:’mm’:’ss");
             sqlServer = GetSqlServer(backup.Source.SqlServerResourceGroup,
                                                 backup.Source.SqlServerName);
             IStorageAccount storageAccount = GetStorageAccount();
@@ -101,12 +102,12 @@ namespace AzureDBExport_ConsoleApp
                 ISqlDatabaseImportExportResponse exportedSqlDatabase = sqlDatabase.ExportTo(
                                             storageAccount,
                                             backup.Destination.StorageContainerName,
-                                            DateTime.Now.ToString("yyyy’-‘MM’-‘dd’T’HH’:’mm’:’ss"))
+                                            fileName)
                                         .WithSqlAdministratorLoginAndPassword(
                                             backup.Source.SqlAdminUsername,
                                             backup.Source.SqlAdminPassword)
                                         .Execute();
-                return exportedSqlDatabase.Status;
+                return fileName;
             }
             catch (Exception ex)
             {
