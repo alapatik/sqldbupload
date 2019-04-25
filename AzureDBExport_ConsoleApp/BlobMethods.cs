@@ -5,7 +5,7 @@ using System.IO;
 
 namespace AzureDBExport_ConsoleApp
 {
-    public class BlobMethods
+    public class BlobMethods : IBlobService
     {
         private string ContainerName;
         private CloudBlobContainer cloudBlobContainer;

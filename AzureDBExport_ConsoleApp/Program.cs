@@ -6,6 +6,8 @@ using Microsoft.Azure.Management.Sql.Fluent;
 using Microsoft.Azure.Management.Storage.Fluent;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -17,7 +19,7 @@ namespace AzureDBExport_ConsoleApp
     {
         static void Main(string[] args)
         {
-            AzureDatabaseExportService service = new AzureDatabaseExportService();
+            AzureDatabaseExportService service = new AzureDatabaseExportService(ConfigurationManager.AppSettings);
             string fileName = service.ExportAzureDatabase();
             BlobMethods blob = new BlobMethods("mysqlbacpacstorage", "gcK8hERRkxl9M988RfJTND2ZQAp+nF430zGzUVwTJunq/yHZrCAISGMVrOiIrDO5gizjCDWTOLpTreDb5yhOnQ==", "practice");
             //blob.DeleteBlob(fileName);

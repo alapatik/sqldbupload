@@ -7,36 +7,27 @@ using Microsoft.Azure.Management.Storage.Fluent;
 using Microsoft.Extensions.Configuration;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Configuration;
+using QM.ETL.DAL.Helpers;
+using System.Collections;
+using System.Collections.Specialized;
 
 namespace AzureDBExport_ConsoleApp
 {
-    public class AzureDatabaseExportService
+    public class AzureDatabaseExportService : IAzureDbService
     {
         IAzure azure;
         ISqlServer sqlServer;
-        public static IConfigurationRoot configuration;
-        //IStorageAccount storageAccount;
-        //CloudBlobContainer cloudBlobContainer;
-        List<Backup> backups = new List<Backup>();
-        Backup backup = new Backup();
-        public AzureDatabaseExportService()
+        public static NameValueCollection _configSettings;
+        //Backup backup = new Backup();
+        public AzureDatabaseExportService(ICollection configSettings)
         {
-            string subscriptionId = string.Empty;
-            string clientId = string.Empty;
-            string clientSecret = string.Empty;
-            string tenantId = string.Empty;
-
-            configuration = new ConfigurationBuilder()
-                                .SetBasePath(Directory.GetCurrentDirectory())
-                                .AddJsonFile("appsettings.json", false, true)
-                                .Build();
-
-            subscriptionId = configuration.GetSection("SubscriptionId").Value;
-            clientId = configuration.GetSection("ClientId").Value;
-            clientSecret = configuration.GetSection("ClientSecret").Value;
-            tenantId = configuration.GetSection("TenantId").Value;
+            _configSettings = configSettings as NameValueCollection;
+            string subscriptionId = _configSettings[AzureConstants.SubscriptionId];
+            string clientId = _configSettings[AzureConstants.ClientId];
+            string clientSecret = _configSettings[AzureConstants.ClientSecret];
+            string tenantId = _configSettings[AzureConstants.TenantId];
 
             var credentials = SdkContext.AzureCredentialsFactory.FromServicePrincipal(
                                            clientId, clientSecret, tenantId,
@@ -44,8 +35,6 @@ namespace AzureDBExport_ConsoleApp
             azure = Azure.Configure()
                         .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
                         .Authenticate(credentials).WithSubscription(subscriptionId);
-
-            configuration.GetSection("Backup").Bind(backup);
         }
 
         private ISqlServer GetSqlServer(string sqlServerResourceGroup, string sqlServerName)
@@ -66,8 +55,8 @@ namespace AzureDBExport_ConsoleApp
             try
             {
                 return azure.StorageAccounts.GetByResourceGroup(
-                                    backup.Destination.StorageAccountResourceGroup,
-                                    backup.Destination.StorageAccountName);
+                                    _configSettings[AzureConstants.StorageAccountResourceGroup],
+                                    _configSettings[AzureConstants.StorageAccountName]);
             }
             catch (Exception ex)
             {
@@ -78,7 +67,7 @@ namespace AzureDBExport_ConsoleApp
         {
             try
             {
-                return sqlServer.Databases.Get(backup.Source.SqlDatabaseName);
+                return sqlServer.Databases.Get(_configSettings[AzureConstants.SqlDatabaseName]);
             }
             catch (Exception ex)
             {
@@ -93,19 +82,19 @@ namespace AzureDBExport_ConsoleApp
         public string ExportAzureDatabase()
         {
             string fileName = DateTime.Now.ToString("yyyy’-‘MM’-‘dd’T’HH’:’mm’:’ss");
-            sqlServer = GetSqlServer(backup.Source.SqlServerResourceGroup,
-                                                backup.Source.SqlServerName);
+            sqlServer = GetSqlServer(_configSettings[AzureConstants.SqlServerResourceGroup],
+                                                _configSettings[AzureConstants.SqlServerName]);
             IStorageAccount storageAccount = GetStorageAccount();
-            ISqlDatabase sqlDatabase = sqlServer.Databases.Get(backup.Source.SqlDatabaseName);
+            ISqlDatabase sqlDatabase = sqlServer.Databases.Get(_configSettings[AzureConstants.SqlDatabaseName]);
             try
             {
                 ISqlDatabaseImportExportResponse exportedSqlDatabase = sqlDatabase.ExportTo(
                                             storageAccount,
-                                            backup.Destination.StorageContainerName,
+                                             _configSettings[AzureConstants.StorageContainerName],
                                             fileName)
                                         .WithSqlAdministratorLoginAndPassword(
-                                            backup.Source.SqlAdminUsername,
-                                            backup.Source.SqlAdminPassword)
+                                            _configSettings[AzureConstants.SqlAdminUsername],
+                                            _configSettings[AzureConstants.SqlAdminPassword])
                                         .Execute();
                 return fileName;
             }
