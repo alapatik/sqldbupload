@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace AzureDBExport_ConsoleApp
 {
@@ -20,10 +21,14 @@ namespace AzureDBExport_ConsoleApp
         static void Main(string[] args)
         {
             AzureDatabaseExportService service = new AzureDatabaseExportService(ConfigurationManager.AppSettings);
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
             string fileName = service.ExportAzureDatabase();
-            BlobMethods blob = new BlobMethods("mysqlbacpacstorage", "gcK8hERRkxl9M988RfJTND2ZQAp+nF430zGzUVwTJunq/yHZrCAISGMVrOiIrDO5gizjCDWTOLpTreDb5yhOnQ==", "practice");
+            stopwatch.Stop();
+            Trace.TraceInformation($"{fileName} took Minutes: {stopwatch.Elapsed.Minutes}, Seconds: {stopwatch.Elapsed.Seconds}, MilliSeconds: {stopwatch.Elapsed.Milliseconds}");
+            //BlobMethods blob = new BlobMethods("mysqlbacpacstorage", "gcK8hERRkxl9M988RfJTND2ZQAp+nF430zGzUVwTJunq/yHZrCAISGMVrOiIrDO5gizjCDWTOLpTreDb5yhOnQ==", "practice");
             //blob.DeleteBlob(fileName);
-            blob.DownloadFileFromBlob(fileName, "~");
+            //blob.DownloadFileFromBlob(fileName, "~");
 
         }
     }
